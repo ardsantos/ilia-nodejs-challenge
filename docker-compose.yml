@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  ms-wallet:
+    build:
+      context: ./ms-wallet
+      dockerfile: Dockerfile
+    container_name: ms-wallet
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://user_wlt:pass_wlt@postgres-wallet:5432/wallet_db
+      - JWT_SECRET=ILIACHALLENGE
+      - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
+    depends_on:
+      - postgres-wallet
+    networks:
+      - ilia-network
+    volumes:
+      - ./ms-wallet:/usr/src/app
+      - /usr/src/app/node_modules
+
+  postgres-wallet:
+    image: postgres:15-alpine
+    container_name: postgres-wallet
+    environment:
+      POSTGRES_USER: user_wlt
+      POSTGRES_PASSWORD: pass_wlt
+      POSTGRES_DB: wallet_db
+    ports:
+      - "5433:5432"
+    networks:
+      - ilia-network
+    volumes:
+      - postgres_wallet_data:/var/lib/postgresql/data
+
+  ms-users:
+    build:
+      context: ./ms-users
+      dockerfile: Dockerfile
+    container_name: ms-users
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - DATABASE_URL=postgresql://user_usr:pass_usr@postgres-users:5432/users_db
+      - JWT_SECRET=ILIACHALLENGE
+      - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
+      - WALLET_SERVICE_URL=http://ms-wallet:3001
+    depends_on:
+      - postgres-users
+    networks:
+      - ilia-network
+    volumes:
+      - ./ms-users:/usr/src/app
+      - /usr/src/app/node_modules
+
+  postgres-users:
+    image: postgres:15-alpine
+    container_name: postgres-users
+    environment:
+      POSTGRES_USER: user_usr
+      POSTGRES_PASSWORD: pass_usr
+      POSTGRES_DB: users_db
+    ports:
+      - "5432:5432"
+    networks:
+      - ilia-network
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+
+  
+
+networks:
+  ilia-network:
+    driver: bridge
+
+volumes:
+  postgres_users_data:
+  postgres_wallet_data:
