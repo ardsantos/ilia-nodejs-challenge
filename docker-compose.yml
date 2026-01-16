@@ -8,7 +8,7 @@ services:
       - "3001:3001"
     environment:
       - PORT=3001
-      - DATABASE_URL=postgresql://user_wlt:pass_wlt@postgres-wallet:5433/wallet_db
+      - DATABASE_URL=postgresql://user_wlt:pass_wlt@postgres-wallet:5432/wallet_db
       - JWT_SECRET=ILIACHALLENGE
       - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
     depends_on:
