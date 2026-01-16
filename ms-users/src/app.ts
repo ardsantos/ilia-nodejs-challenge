@@ -6,13 +6,17 @@ import dotenv from "dotenv";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/error.middleware";
 
+import { requestIdMiddleware } from "./middlewares/request-id.middleware";
+
 dotenv.config();
 
 const app: Application = express();
 
 app.use(helmet());
 app.use(cors());
-app.use(morgan("combined"));
+app.use(requestIdMiddleware);
+morgan.token("id", (req: Request) => (req.headers["x-request-id"] as string) || "-");
+app.use(morgan(':id :method :url :status :res[content-length] - :response-time ms'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
