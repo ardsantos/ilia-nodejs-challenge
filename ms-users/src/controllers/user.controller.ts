@@ -25,7 +25,7 @@ export async function getAllUsersHandler(req: Request, res: Response): Promise<v
  * Get user by ID
  * GET /users/:id
  */
-export async function getUserByIdHandler(req: Request, res: Response): Promise<void> {
+export async function getUserByIdHandler(req: Request<{ id: string }>, res: Response): Promise<void> {
   try {
     const { error } = userIdSchema.validate({ id: req.params.id });
     if (error) {
@@ -54,7 +54,7 @@ export async function getUserByIdHandler(req: Request, res: Response): Promise<v
  * PATCH /users/:id
  * Authorization: Users can only update their own data
  */
-export async function updateUserHandler(req: Request, res: Response): Promise<void> {
+export async function updateUserHandler(req: Request<{ id: string }>, res: Response): Promise<void> {
   try {
     const { error: idError } = userIdSchema.validate({ id: req.params.id });
     if (idError) {
@@ -116,7 +116,7 @@ export async function updateUserHandler(req: Request, res: Response): Promise<vo
  * DELETE /users/:id
  * Authorization: Users can only delete their own account
  */
-export async function deleteUserHandler(req: Request, res: Response): Promise<void> {
+export async function deleteUserHandler(req: Request<{ id: string }>, res: Response): Promise<void> {
   try {
     const { error } = userIdSchema.validate({ id: req.params.id });
     if (error) {

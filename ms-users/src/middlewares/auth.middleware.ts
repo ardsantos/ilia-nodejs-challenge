@@ -1,6 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt.util";
 
+// Extend Express Request interface
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
+
 /**
  * Extract token from Authorization header
  * Expected format: "Bearer <token>"
