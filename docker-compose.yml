@@ -11,6 +11,12 @@ services:
       - DATABASE_URL=postgresql://user_wlt:pass_wlt@postgres-wallet:5432/wallet_db
       - JWT_SECRET=ILIACHALLENGE
       - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     depends_on:
       - postgres-wallet
     networks:
@@ -30,6 +36,11 @@ services:
       - "5433:5432"
     networks:
       - ilia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_wlt -d wallet_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_wallet_data:/var/lib/postgresql/data
 
@@ -46,8 +57,17 @@ services:
       - JWT_SECRET=ILIACHALLENGE
       - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
       - WALLET_SERVICE_URL=http://ms-wallet:3001
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     depends_on:
-      - postgres-users
+      postgres-users:
+        condition: service_healthy
+      ms-wallet:
+        condition: service_healthy
     networks:
       - ilia-network
     volumes:
@@ -65,6 +85,11 @@ services:
       - "5432:5432"
     networks:
       - ilia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_usr -d users_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_users_data:/var/lib/postgresql/data
 

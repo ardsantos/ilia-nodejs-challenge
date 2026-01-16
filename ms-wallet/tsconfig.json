@@ -3,8 +3,14 @@
     "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",
-    "typeRoots": ["./node_modules/@types", "./src/@types"],
-    "types": ["node"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/@types"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,5 +18,10 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "exclude": ["node_modules", "dist", "prisma.config.ts", "prisma/**/*.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "prisma.config.ts",
+    "prisma/**/*.ts"
+  ]
 }
