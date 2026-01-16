@@ -1,1 +1,0 @@
-// User Microservice Entry Point
