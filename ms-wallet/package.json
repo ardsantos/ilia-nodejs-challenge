@@ -4,8 +4,10 @@
   "description": "Wallet Microservice",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "prisma:generate": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -14,19 +16,25 @@
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
-    "joi": "^18.0.2",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^25.0.8",
+    "@types/helmet": "^0.0.48",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.0.9",
     "@types/pg": "^8.16.0",
+    "dotenv": "^17.2.3",
     "nodemon": "^3.1.11",
     "prisma": "^7.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }
