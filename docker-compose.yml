@@ -21,9 +21,6 @@ services:
       - postgres-wallet
     networks:
       - ilia-network
-    volumes:
-      - ./ms-wallet:/usr/src/app
-      - /usr/src/app/node_modules
 
   postgres-wallet:
     image: postgres:15-alpine
@@ -70,9 +67,6 @@ services:
         condition: service_healthy
     networks:
       - ilia-network
-    volumes:
-      - ./ms-users:/usr/src/app
-      - /usr/src/app/node_modules
 
   postgres-users:
     image: postgres:15-alpine

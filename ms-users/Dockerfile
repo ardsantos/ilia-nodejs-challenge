@@ -1,4 +1,7 @@
-FROM node:24-alpine
+FROM node:24-slim
+
+# Install dependencies required for Prisma and bcrypt
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
@@ -16,4 +19,4 @@ RUN npm run build
 
 EXPOSE 3002
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
