@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ms-wallet:
     build:
@@ -69,8 +67,6 @@ services:
       - ilia-network
     volumes:
       - postgres_users_data:/var/lib/postgresql/data
-
-  
 
 networks:
   ilia-network:
