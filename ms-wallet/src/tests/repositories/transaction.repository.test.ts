@@ -12,6 +12,7 @@ jest.mock("../../db", () => ({
         transaction: {
             create: jest.fn(),
             groupBy: jest.fn(),
+            findMany: jest.fn(),
         },
     },
 }));
@@ -160,6 +161,89 @@ describe("TransactionRepository", () => {
             const result = await repository.getAggregatedBalance("wallet-123");
 
             expect(result).toBe(0);
+        });
+    });
+
+    describe("findTransactionsByWalletId", () => {
+        it("should find all transactions for a wallet", async () => {
+            const mockTransactions = [
+                {
+                    id: "tx-1",
+                    amount: 100,
+                    type: "CREDIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date("2024-01-15"),
+                },
+                {
+                    id: "tx-2",
+                    amount: 50,
+                    type: "DEBIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date("2024-01-14"),
+                },
+            ];
+
+            (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions);
+
+            const result = await repository.findTransactionsByWalletId("wallet-123");
+
+            expect(prisma.transaction.findMany).toHaveBeenCalledWith({
+                where: { walletId: "wallet-123" },
+                orderBy: { createdAt: "desc" },
+            });
+            expect(result).toEqual(mockTransactions);
+        });
+
+        it("should filter transactions by CREDIT type", async () => {
+            const mockCreditTransactions = [
+                {
+                    id: "tx-1",
+                    amount: 100,
+                    type: "CREDIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date("2024-01-15"),
+                },
+            ];
+
+            (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockCreditTransactions);
+
+            const result = await repository.findTransactionsByWalletId("wallet-123", "CREDIT");
+
+            expect(prisma.transaction.findMany).toHaveBeenCalledWith({
+                where: { walletId: "wallet-123", type: "CREDIT" },
+                orderBy: { createdAt: "desc" },
+            });
+            expect(result).toEqual(mockCreditTransactions);
+        });
+
+        it("should filter transactions by DEBIT type", async () => {
+            const mockDebitTransactions = [
+                {
+                    id: "tx-2",
+                    amount: 50,
+                    type: "DEBIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date("2024-01-14"),
+                },
+            ];
+
+            (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockDebitTransactions);
+
+            const result = await repository.findTransactionsByWalletId("wallet-123", "DEBIT");
+
+            expect(prisma.transaction.findMany).toHaveBeenCalledWith({
+                where: { walletId: "wallet-123", type: "DEBIT" },
+                orderBy: { createdAt: "desc" },
+            });
+            expect(result).toEqual(mockDebitTransactions);
+        });
+
+        it("should return empty array for wallet with no transactions", async () => {
+            (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
+
+            const result = await repository.findTransactionsByWalletId("wallet-123");
+
+            expect(result).toEqual([]);
         });
     });
 });

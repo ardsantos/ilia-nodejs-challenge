@@ -175,4 +175,156 @@ describe("TransactionService", () => {
             );
         });
     });
+
+    describe("getTransactions", () => {
+        it("should return all transactions for a user", async () => {
+            const mockWallet = {
+                id: "wallet-123",
+                user_id: "user-123",
+                createdAt: new Date(),
+            };
+
+            const mockTransactions = [
+                {
+                    id: "tx-1",
+                    amount: 100,
+                    type: "CREDIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date(),
+                },
+                {
+                    id: "tx-2",
+                    amount: 50,
+                    type: "DEBIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date(),
+                },
+            ];
+
+            (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
+            (transactionRepository.findTransactionsByWalletId as jest.Mock).mockResolvedValue(
+                mockTransactions
+            );
+
+            const result = await transactionService.getTransactions("user-123");
+
+            expect(transactionRepository.findTransactionsByWalletId).toHaveBeenCalledWith(
+                "wallet-123",
+                undefined
+            );
+            expect(result).toEqual([
+                {
+                    id: "tx-1",
+                    user_id: "user-123",
+                    amount: 100,
+                    type: "CREDIT",
+                },
+                {
+                    id: "tx-2",
+                    user_id: "user-123",
+                    amount: 50,
+                    type: "DEBIT",
+                },
+            ]);
+        });
+
+        it("should filter transactions by CREDIT type", async () => {
+            const mockWallet = {
+                id: "wallet-123",
+                user_id: "user-123",
+                createdAt: new Date(),
+            };
+
+            const mockCreditTransactions = [
+                {
+                    id: "tx-1",
+                    amount: 100,
+                    type: "CREDIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date(),
+                },
+            ];
+
+            (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
+            (transactionRepository.findTransactionsByWalletId as jest.Mock).mockResolvedValue(
+                mockCreditTransactions
+            );
+
+            const result = await transactionService.getTransactions("user-123", "CREDIT");
+
+            expect(transactionRepository.findTransactionsByWalletId).toHaveBeenCalledWith(
+                "wallet-123",
+                "CREDIT"
+            );
+            expect(result).toEqual([
+                {
+                    id: "tx-1",
+                    user_id: "user-123",
+                    amount: 100,
+                    type: "CREDIT",
+                },
+            ]);
+        });
+
+        it("should filter transactions by DEBIT type", async () => {
+            const mockWallet = {
+                id: "wallet-123",
+                user_id: "user-123",
+                createdAt: new Date(),
+            };
+
+            const mockDebitTransactions = [
+                {
+                    id: "tx-2",
+                    amount: 50,
+                    type: "DEBIT",
+                    walletId: "wallet-123",
+                    createdAt: new Date(),
+                },
+            ];
+
+            (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
+            (transactionRepository.findTransactionsByWalletId as jest.Mock).mockResolvedValue(
+                mockDebitTransactions
+            );
+
+            const result = await transactionService.getTransactions("user-123", "DEBIT");
+
+            expect(transactionRepository.findTransactionsByWalletId).toHaveBeenCalledWith(
+                "wallet-123",
+                "DEBIT"
+            );
+            expect(result).toEqual([
+                {
+                    id: "tx-2",
+                    user_id: "user-123",
+                    amount: 50,
+                    type: "DEBIT",
+                },
+            ]);
+        });
+
+        it("should return empty array for wallet with no transactions", async () => {
+            const mockWallet = {
+                id: "wallet-123",
+                user_id: "user-123",
+                createdAt: new Date(),
+            };
+
+            (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
+            (transactionRepository.findTransactionsByWalletId as jest.Mock).mockResolvedValue([]);
+
+            const result = await transactionService.getTransactions("user-123");
+
+            expect(result).toEqual([]);
+        });
+
+        it("should throw error if wallet not found", async () => {
+            (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(null);
+
+            await expect(transactionService.getTransactions("nonexistent")).rejects.toThrow(
+                "Wallet not found"
+            );
+        });
+    });
 });

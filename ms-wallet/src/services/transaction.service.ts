@@ -20,6 +20,13 @@ interface TransactionResult {
   walletId: string;
 }
 
+interface TransactionDTO {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: "CREDIT" | "DEBIT";
+}
+
 /**
  * Create a transaction with ACID guarantees
  * - Atomically finds or creates wallet
@@ -86,4 +93,33 @@ export async function getBalance(userId: string): Promise<BalanceDTO> {
   const amount = await transactionRepository.getAggregatedBalance(wallet.id);
 
   return { amount };
+}
+
+/**
+ * Get all transactions for a user with optional type filter
+ * - Finds wallet by userId
+ * - Retrieves transactions filtered by type if provided
+ * - Maps to OpenAPI TransactionsModel schema
+ */
+export async function getTransactions(
+  userId: string,
+  type?: "CREDIT" | "DEBIT"
+): Promise<TransactionDTO[]> {
+  const wallet = await transactionRepository.findByUserId(userId);
+
+  if (!wallet) {
+    throw new Error("Wallet not found");
+  }
+
+  const transactions = await transactionRepository.findTransactionsByWalletId(
+    wallet.id,
+    type
+  );
+
+  return transactions.map((t) => ({
+    id: t.id,
+    user_id: wallet.user_id,
+    amount: t.amount,
+    type: t.type as "CREDIT" | "DEBIT",
+  }));
 }

@@ -96,3 +96,56 @@ export async function getBalanceHandler(
     res.status(500).json({ error: "Internal server error" });
   }
 }
+
+const getTransactionsQuerySchema = Joi.object({
+  type: Joi.string().valid("CREDIT", "DEBIT").optional().messages({
+    "any.only": "Type must be either CREDIT or DEBIT",
+  }),
+});
+
+/**
+ * Get all transactions for authenticated user
+ * GET /api/transactions
+ *
+ * Query params:
+ * - type: optional filter by CREDIT or DEBIT
+ */
+export async function getTransactionsHandler(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const { error, value } = getTransactionsQuerySchema.validate(req.query, {
+      stripUnknown: true,
+    });
+
+    if (error) {
+      const details = error.details.map((d) => d.message).join(", ");
+      res.status(400).json({ error: "Validation failed", details });
+      return;
+    }
+
+    if (!req.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const transactions = await transactionService.getTransactions(
+      req.userId,
+      value.type
+    );
+
+    res.status(200).json(transactions);
+  } catch (error) {
+    console.error("Get transactions failed:", error);
+
+    if (error instanceof Error) {
+      if (error.message === "Wallet not found") {
+        res.status(404).json({ error: error.message });
+        return;
+      }
+    }
+
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
