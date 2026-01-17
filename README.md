@@ -350,7 +350,6 @@ Built for the Ília Banking Platform coding challenge.
 
 ## 🔗 Related Documentation
 
-- [ROADMAP.md](./ROADMAP.md) - Project development phases
 - [ms-users OpenAPI](./ms-users/openapi.json) - Users API specification
 - [ms-wallet OpenAPI](./ms-wallet/openapi.json) - Wallet API specification
 
