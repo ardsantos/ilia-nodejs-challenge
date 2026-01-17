@@ -45,3 +45,25 @@ jobs:
       
     - name: Test (ms-wallet)
       run: cd ms-wallet && npm test
+
+  docker-build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build-and-test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build ms-users Docker image
+      run: |
+        docker build -t ms-users:latest ./ms-users
+        docker tag ms-users:latest ms-users:${{ github.sha }}
+    
+    - name: Build ms-wallet Docker image
+      run: |
+        docker build -t ms-wallet:latest ./ms-wallet
+        docker tag ms-wallet:latest ms-wallet:${{ github.sha }}
+
