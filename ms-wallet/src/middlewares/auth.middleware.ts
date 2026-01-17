@@ -70,7 +70,7 @@ export function authenticate(
 /**
  * Authenticate internal service-to-service requests using JWT_SECRET_INTERNAL
  * Validates token from x-internal-token header
- * Returns 403 Forbidden if token is invalid
+ * Returns 401 Unauthorized if token is invalid
  */
 export function authenticateInternal(
   req: Request,
@@ -80,7 +80,7 @@ export function authenticateInternal(
   const token = req.headers["x-internal-token"] as string | undefined;
 
   if (!token) {
-    res.status(403).json({ error: "No internal token provided" });
+    res.status(401).json({ error: "No internal token provided" });
     return;
   }
 
@@ -88,6 +88,6 @@ export function authenticateInternal(
     jwt.verify(token, process.env.JWT_SECRET_INTERNAL as string);
     next();
   } catch (error) {
-    res.status(403).json({ error: "Invalid internal token" });
+    res.status(401).json({ error: "Invalid internal token" });
   }
 }

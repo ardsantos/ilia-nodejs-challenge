@@ -82,6 +82,25 @@ export class TransactionRepository {
 
     return credits - debits;
   }
+
+  /**
+   * Find all transactions for a wallet with optional type filter
+   * Ordered by creation date descending (newest first)
+   */
+  async findTransactionsByWalletId(
+    walletId: string,
+    type?: "CREDIT" | "DEBIT",
+    tx?: PrismaTransactionClient
+  ): Promise<Transaction[]> {
+    const client = tx ?? prisma;
+    return client.transaction.findMany({
+      where: {
+        walletId,
+        ...(type && { type }),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 }
 
 export const transactionRepository = new TransactionRepository();

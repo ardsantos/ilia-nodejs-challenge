@@ -5,39 +5,30 @@ services:
       dockerfile: Dockerfile
     container_name: ms-wallet
     ports:
-      - "3001:3001"
+      - "${MS_WALLET_PORT:-3001}:${MS_WALLET_PORT:-3001}"
     environment:
-      - PORT=3001
-      - DATABASE_URL=postgresql://user_wlt:pass_wlt@postgres-wallet:5432/wallet_db
-      - JWT_SECRET=ILIACHALLENGE
-      - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      - PORT=${MS_WALLET_PORT:-3001}
+      - DATABASE_URL=postgresql://${POSTGRES_WALLET_USER}:${POSTGRES_WALLET_PASSWORD}@postgres-wallet:5432/${POSTGRES_WALLET_DB}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET_INTERNAL=${JWT_SECRET_INTERNAL}
     depends_on:
       - postgres-wallet
     networks:
       - ilia-network
-    volumes:
-      - ./ms-wallet:/usr/src/app
-      - /usr/src/app/node_modules
 
   postgres-wallet:
     image: postgres:15-alpine
     container_name: postgres-wallet
     environment:
-      POSTGRES_USER: user_wlt
-      POSTGRES_PASSWORD: pass_wlt
-      POSTGRES_DB: wallet_db
+      POSTGRES_USER: ${POSTGRES_WALLET_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_WALLET_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_WALLET_DB}
     ports:
       - "5433:5432"
     networks:
       - ilia-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user_wlt -d wallet_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_WALLET_USER} -d ${POSTGRES_WALLET_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,43 +41,34 @@ services:
       dockerfile: Dockerfile
     container_name: ms-users
     ports:
-      - "3002:3002"
+      - "${MS_USERS_PORT:-3002}:${MS_USERS_PORT:-3002}"
     environment:
-      - PORT=3002
-      - DATABASE_URL=postgresql://user_usr:pass_usr@postgres-users:5432/users_db
-      - JWT_SECRET=ILIACHALLENGE
-      - JWT_SECRET_INTERNAL=ILIACHALLENGE_INTERNAL
-      - WALLET_SERVICE_URL=http://ms-wallet:3001
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      - PORT=${MS_USERS_PORT:-3002}
+      - DATABASE_URL=postgresql://${POSTGRES_USERS_USER}:${POSTGRES_USERS_PASSWORD}@postgres-users:5432/${POSTGRES_USERS_DB}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET_INTERNAL=${JWT_SECRET_INTERNAL}
+      - WALLET_SERVICE_URL=http://ms-wallet:${MS_WALLET_PORT:-3001}
     depends_on:
       postgres-users:
         condition: service_healthy
       ms-wallet:
-        condition: service_healthy
+        condition: service_started
     networks:
       - ilia-network
-    volumes:
-      - ./ms-users:/usr/src/app
-      - /usr/src/app/node_modules
 
   postgres-users:
     image: postgres:15-alpine
     container_name: postgres-users
     environment:
-      POSTGRES_USER: user_usr
-      POSTGRES_PASSWORD: pass_usr
-      POSTGRES_DB: users_db
+      POSTGRES_USER: ${POSTGRES_USERS_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_USERS_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_USERS_DB}
     ports:
       - "5432:5432"
     networks:
       - ilia-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user_usr -d users_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERS_USER} -d ${POSTGRES_USERS_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
