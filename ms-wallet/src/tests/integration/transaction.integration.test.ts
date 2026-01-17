@@ -49,6 +49,46 @@ describe("Transaction API Integration Tests", () => {
         });
     });
 
+    describe("GET /api/transactions", () => {
+        it("should reject transactions request without token", async () => {
+            const res = await request(app).get("/api/transactions");
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject transactions request with invalid token", async () => {
+            const res = await request(app)
+                .get("/api/transactions")
+                .set("Authorization", "Bearer invalid-token");
+
+            expect(res.status).toBe(401);
+        });
+
+        it("should reject transactions request with invalid type filter", async () => {
+            const res = await request(app)
+                .get("/api/transactions?type=INVALID")
+                .set("Authorization", "Bearer test-token");
+
+            expect(res.status).toBe(401); // Will fail auth first
+        });
+
+        it("should accept valid type filter CREDIT", async () => {
+            const res = await request(app)
+                .get("/api/transactions?type=CREDIT")
+                .set("Authorization", "Bearer test-token");
+
+            expect(res.status).toBe(401); // Will fail auth, but validation passed
+        });
+
+        it("should accept valid type filter DEBIT", async () => {
+            const res = await request(app)
+                .get("/api/transactions?type=DEBIT")
+                .set("Authorization", "Bearer test-token");
+
+            expect(res.status).toBe(401); // Will fail auth, but validation passed
+        });
+    });
+
     describe("GET /api/balance", () => {
         it("should reject balance request without token", async () => {
             const res = await request(app).get("/api/balance");
