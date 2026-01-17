@@ -1,8 +1,9 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
 import transactionRoutes from "./routes/transaction.routes";
 import internalRoutes from "./routes/internal.routes";
 
@@ -12,11 +13,23 @@ dotenv.config();
 
 const app: Application = express();
 
-app.use(helmet());
+// Swagger setup
+const swaggerDocument = require("../openapi.json");
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path.startsWith("/api-docs")) {
+    next();
+  } else {
+    helmet()(req, res, next);
+  }
+});
 app.use(cors());
 app.use(requestIdMiddleware);
 morgan.token("id", (req: Request) => (req.headers["x-request-id"] as string) || "-");
 app.use(morgan(':id :method :url :status :res[content-length] - :response-time ms'));
+
+// Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
