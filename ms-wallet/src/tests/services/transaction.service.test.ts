@@ -21,6 +21,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 0,
                 createdAt: new Date(),
             };
 
@@ -40,6 +41,10 @@ describe("TransactionService", () => {
                 (transactionRepository.createTransaction as jest.Mock).mockResolvedValue(
                     mockTransaction
                 );
+                (transactionRepository.updateWalletBalance as jest.Mock).mockResolvedValue({
+                    ...mockWallet,
+                    balance: 100,
+                });
                 return callback(mockTx);
             });
 
@@ -62,6 +67,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 100,
                 createdAt: new Date(),
             };
 
@@ -79,6 +85,10 @@ describe("TransactionService", () => {
                 (transactionRepository.createTransaction as jest.Mock).mockResolvedValue(
                     mockTransaction
                 );
+                (transactionRepository.updateWalletBalance as jest.Mock).mockResolvedValue({
+                    ...mockWallet,
+                    balance: 150,
+                });
                 return callback(mockTx);
             });
 
@@ -96,6 +106,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 100,
                 createdAt: new Date(),
             };
 
@@ -110,10 +121,13 @@ describe("TransactionService", () => {
             (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
                 const mockTx = {};
                 (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
-                (transactionRepository.getAggregatedBalance as jest.Mock).mockResolvedValue(100);
                 (transactionRepository.createTransaction as jest.Mock).mockResolvedValue(
                     mockTransaction
                 );
+                (transactionRepository.updateWalletBalance as jest.Mock).mockResolvedValue({
+                    ...mockWallet,
+                    balance: 50,
+                });
                 return callback(mockTx);
             });
 
@@ -131,13 +145,13 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 30,
                 createdAt: new Date(),
             };
 
             (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
                 const mockTx = {};
                 (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
-                (transactionRepository.getAggregatedBalance as jest.Mock).mockResolvedValue(30);
                 return callback(mockTx);
             });
 
@@ -156,11 +170,11 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 250,
                 createdAt: new Date(),
             };
 
             (transactionRepository.findByUserId as jest.Mock).mockResolvedValue(mockWallet);
-            (transactionRepository.getAggregatedBalance as jest.Mock).mockResolvedValue(250);
 
             const result = await transactionService.getBalance("user-123");
 
@@ -181,6 +195,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 50,
                 createdAt: new Date(),
             };
 
@@ -232,6 +247,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 100,
                 createdAt: new Date(),
             };
 
@@ -270,6 +286,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 50,
                 createdAt: new Date(),
             };
 
@@ -308,6 +325,7 @@ describe("TransactionService", () => {
             const mockWallet = {
                 id: "wallet-123",
                 user_id: "user-123",
+                balance: 0,
                 createdAt: new Date(),
             };
 

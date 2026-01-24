@@ -16,6 +16,7 @@ datasource db {
 model Wallet {
   id        String   @id @default(uuid())
   user_id   String   @unique
+  balance   Int      @default(0)
   createdAt DateTime @default(now())
 
   transactions Transaction[]
@@ -24,10 +25,11 @@ model Wallet {
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  amount    Int
-  type      Type
-  createdAt DateTime @default(now())
+  id             String   @id @default(uuid())
+  amount         Int
+  type           Type
+  idempotencyKey String?  @unique
+  createdAt      DateTime @default(now())
 
   walletId String
   wallet   Wallet @relation(fields: [walletId], references: [id])

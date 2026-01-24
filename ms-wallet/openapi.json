@@ -18,6 +18,18 @@
     "paths": {
         "/api/transactions": {
             "post": {
+                "description": "Creates a new transaction. Supports idempotent requests via the Idempotency-Key header - if a transaction with the same key already exists, the existing transaction is returned instead of creating a duplicate.",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Idempotency-Key",
+                        "required": false,
+                        "description": "Optional unique key to ensure idempotent transaction creation. If a transaction with this key already exists, the existing transaction is returned.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -31,7 +43,7 @@
                     "Transactions"
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -39,7 +51,7 @@
                                 }
                             }
                         },
-                        "description": "Response"
+                        "description": "Transaction created successfully"
                     },
                     "401": {
                         "$ref": "#/components/responses/UnauthorizedError"
