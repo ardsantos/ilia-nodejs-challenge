@@ -22,12 +22,12 @@ const createTransactionSchema = Joi.object({
  * Create a new transaction
  * POST /api/transactions
  *
+ * Headers:
+ * - Idempotency-Key: Optional key to ensure idempotent transaction creation
+ *
  * Security: Uses req.userId from auth middleware, ignores any user_id in body
  */
-export async function createTransactionHandler(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function createTransactionHandler(req: Request, res: Response): Promise<void> {
   try {
     const { error, value } = createTransactionSchema.validate(req.body, {
       abortEarly: false,
@@ -45,10 +45,13 @@ export async function createTransactionHandler(
       return;
     }
 
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+
     const transaction = await transactionService.createTransaction({
       userId: req.userId,
       amount: value.amount,
       type: value.type,
+      idempotencyKey,
     });
 
     res.status(201).json(transaction);
@@ -70,10 +73,7 @@ export async function createTransactionHandler(
  * Get balance for authenticated user
  * GET /api/balance
  */
-export async function getBalanceHandler(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getBalanceHandler(req: Request, res: Response): Promise<void> {
   try {
     if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
@@ -110,10 +110,7 @@ const getTransactionsQuerySchema = Joi.object({
  * Query params:
  * - type: optional filter by CREDIT or DEBIT
  */
-export async function getTransactionsHandler(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getTransactionsHandler(req: Request, res: Response): Promise<void> {
   try {
     const { error, value } = getTransactionsQuerySchema.validate(req.query, {
       stripUnknown: true,
@@ -130,10 +127,7 @@ export async function getTransactionsHandler(
       return;
     }
 
-    const transactions = await transactionService.getTransactions(
-      req.userId,
-      value.type
-    );
+    const transactions = await transactionService.getTransactions(req.userId, value.type);
 
     res.status(200).json(transactions);
   } catch (error) {
