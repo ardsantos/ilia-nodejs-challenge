@@ -7,6 +7,7 @@ interface CreateTransactionData {
   amount: number;
   type: "CREDIT" | "DEBIT";
   walletId: string;
+  idempotencyKey?: string;
 }
 
 export class TransactionRepository {
@@ -49,7 +50,40 @@ export class TransactionRepository {
         amount: data.amount,
         type: data.type,
         walletId: data.walletId,
+        idempotencyKey: data.idempotencyKey,
       },
+    });
+  }
+
+  /**
+   * Find transaction by idempotency key
+   */
+  async findByIdempotencyKey(
+    idempotencyKey: string,
+    tx?: PrismaTransactionClient
+  ): Promise<Transaction | null> {
+    const client = tx ?? prisma;
+    return client.transaction.findUnique({
+      where: { idempotencyKey },
+    });
+  }
+
+  /**
+   * Update wallet balance atomically
+   * For CREDIT: increments balance
+   * For DEBIT: decrements balance
+   */
+  async updateWalletBalance(
+    walletId: string,
+    amount: number,
+    type: "CREDIT" | "DEBIT",
+    tx?: PrismaTransactionClient
+  ): Promise<Wallet> {
+    const client = tx ?? prisma;
+    const delta = type === "CREDIT" ? amount : -amount;
+    return client.wallet.update({
+      where: { id: walletId },
+      data: { balance: { increment: delta } },
     });
   }
 
