@@ -61,9 +61,75 @@ docker compose up -d
 - **Wallet API**: http://localhost:3001
 - **Wallet Swagger UI**: http://localhost:3001/api-docs
 
-### Local Development
+### Local Development (Hybrid Approach)
 
-#### ms-users
+This approach uses Docker for databases while running the services locally for faster development iteration.
+
+#### Prerequisites
+
+- **Docker & Docker Compose** - For running PostgreSQL databases
+- **Node.js 20+** - For running the services locally
+- **Git** - For cloning the repository
+
+#### Setup Steps
+
+**1. Start the PostgreSQL databases using Docker Compose**
+
+```bash
+# Start only the database containers
+docker compose up -d postgres-users postgres-wallet
+
+# Verify databases are running
+docker compose ps
+```
+
+This will start:
+- `postgres-users` on `localhost:5432`
+- `postgres-wallet` on `localhost:5433`
+
+**2. Create environment files for each service**
+
+First, ensure you have a `.env` file in the root directory (or use the defaults from `.env.example`):
+
+```bash
+# In the root directory
+cp .env.example .env
+# Edit .env if you want to change default passwords
+```
+
+Then create `.env` files for each microservice:
+
+```bash
+# For ms-users
+cd ms-users
+cp .env.example .env
+# Edit .env and update the database password to match your root .env file
+
+# For ms-wallet
+cd ../ms-wallet
+cp .env.example .env
+# Edit .env and update the database password to match your root .env file
+```
+
+**Important:** The database passwords in `ms-users/.env` and `ms-wallet/.env` must match the passwords defined in the root `.env` file:
+- `ms-users/.env` → `DATABASE_URL` password must match `POSTGRES_USERS_PASSWORD` from root `.env`
+- `ms-wallet/.env` → `DATABASE_URL` password must match `POSTGRES_WALLET_PASSWORD` from root `.env`
+
+Also ensure the `JWT_SECRET` and `JWT_SECRET_INTERNAL` values match across all `.env` files.
+
+**3. Setup and run ms-wallet**
+
+```bash
+cd ms-wallet
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run dev
+```
+
+The wallet service will be available at: http://localhost:3001
+
+**4. Setup and run ms-users** (in a new terminal)
 
 ```bash
 cd ms-users
@@ -73,14 +139,38 @@ npx prisma migrate dev
 npm run dev
 ```
 
-#### ms-wallet
+The users service will be available at: http://localhost:3002
+
+**5. Verify the setup**
+
+- **Users API**: http://localhost:3002
+- **Users Swagger UI**: http://localhost:3002/api-docs
+- **Wallet API**: http://localhost:3001
+- **Wallet Swagger UI**: http://localhost:3001/api-docs
+
+Test the health endpoints:
+```bash
+curl http://localhost:3002/health
+curl http://localhost:3001/health
+```
+
+#### Development Workflow
+
+- Edit code in your IDE
+- Changes are automatically reloaded (thanks to `ts-node` and `npm run dev`)
+- No need to rebuild Docker images
+- Database data persists in Docker volumes
+
+#### Stopping Services
 
 ```bash
-cd ms-wallet
-npm install
-npx prisma generate
-npx prisma migrate dev
-npm run dev
+# Stop the Node.js services: Ctrl+C in each terminal
+
+# Stop the Docker databases (keeps data):
+docker compose stop postgres-users postgres-wallet
+
+# Stop and remove databases (deletes data):
+docker compose down -v
 ```
 
 ## 📚 API Documentation
@@ -406,15 +496,85 @@ Built for the Ília Banking Platform coding challenge.
 # Find and kill process using port 3002
 lsof -ti:3002 | xargs kill -9
 
-# Or change ports in docker-compose.yml
+# Find and kill process using port 3001
+lsof -ti:3001 | xargs kill -9
+
+# Or change ports in docker-compose.yml or service .env files
 ```
 
 ### Database Connection Issues
 
+**For Docker Compose:**
 ```bash
 # Reset databases
-docker-compose down -v
-docker-compose up -d
+docker compose down -v
+docker compose up -d
+```
+
+**For Local Development (Hybrid):**
+```bash
+# Check if databases are running
+docker compose ps
+
+# Restart databases
+docker compose restart postgres-users postgres-wallet
+
+# Check database logs
+docker compose logs postgres-users
+docker compose logs postgres-wallet
+
+# Verify connection string in .env files
+# Ensure passwords match between root .env and service .env files
+```
+
+### Prisma Migration Errors
+
+```bash
+# Reset Prisma client and regenerate
+cd ms-users  # or ms-wallet
+rm -rf node_modules/.prisma
+rm -rf src/generated/prisma
+npx prisma generate
+
+# If migrations are failing, reset the database
+npx prisma migrate reset
+npx prisma migrate dev
+```
+
+### Environment Variable Issues
+
+**Problem:** Service can't find DATABASE_URL or JWT secrets
+
+**Solution:**
+```bash
+# Verify .env file exists in the service directory
+ls -la ms-users/.env
+ls -la ms-wallet/.env
+
+# Check that .env file has all required variables:
+# - DATABASE_URL
+# - JWT_SECRET
+# - JWT_SECRET_INTERNAL
+# - PORT
+# - WALLET_SERVICE_URL (for ms-users only)
+
+# Ensure passwords in service .env match root .env
+cat .env | grep POSTGRES_USERS_PASSWORD
+cat ms-users/.env | grep DATABASE_URL
+```
+
+### Service-to-Service Communication Issues
+
+**Problem:** ms-users can't communicate with ms-wallet
+
+**Solution:**
+```bash
+# Verify ms-wallet is running and accessible
+curl http://localhost:3001/health
+
+# Check WALLET_SERVICE_URL in ms-users/.env
+# For local development it should be: http://localhost:3001
+# NOT: http://ms-wallet:3001 (that's for Docker Compose only)
 ```
 
 ### Tests Failing
@@ -422,4 +582,10 @@ docker-compose up -d
 ```bash
 # Ensure test environment variables are set
 # Check jest.setup.js files in each service
+
+# Run tests with verbose output
+npm test -- --verbose
+
+# Clear Jest cache
+npm test -- --clearCache
 ```
